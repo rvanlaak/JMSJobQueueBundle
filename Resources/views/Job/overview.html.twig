@@ -3,6 +3,8 @@
 
 {% block title %}Overview - {{ parent() }}{% endblock %}
 
+{% set colspan = 6 %}
+
 {% block content %}
 
     <h1><div class="page-header">Overview</div></h1>
@@ -24,52 +26,60 @@
         </div>
     </div>
 
-    <table class="table table-bordered table-striped table-condensed">
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Command</th>
-            <th>State</th>
-            <th>Created At</th>
-            <th>Runtime</th>
-            <th>Queue</th>
-        </tr>
-        </thead>
+    {% block jobTable %}
+        <table class="table table-bordered table-striped table-condensed">
+            {% block jobTableHead %}
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Command</th>
+                    <th>State</th>
+                    <th>Created At</th>
+                    <th>Runtime</th>
+                    <th>Queue</th>
+                </tr>
+                </thead>
+            {% endblock %}
 
-        <tbody>
+            <tbody>
 
-            {% if jobsWithError|length > 0 %}
-                {% for job in jobsWithError %}
+                {% if jobsWithError|length > 0 %}
+                    {% for job in jobsWithError %}
+                        {% block jobTableErrorRow %}
+                            <tr>
+                                <td><a href="{{ path("jms_jobs_details", {"id": job.id}) }}">{{ job.id }}</a></td>
+                                <td><a href="{{ path("jms_jobs_details", {"id": job.id}) }}">{{ macros.command(job) }}</a></td>
+                                <td>{{ macros.state(job) }}</td>
+                                <td>{{ macros.ago(job.createdAt) }}</td>
+                                <td>{{ macros.runtime(job) }}</td>
+                                <td>{{ macros.queue(job) }}</td>
+                            </tr>
+                        {% endblock %}
+                    {% endfor %}
                     <tr>
-                        <td><a href="{{ path("jms_jobs_details", {"id": job.id}) }}">{{ job.id }}</a></td>
-                        <td><a href="{{ path("jms_jobs_details", {"id": job.id}) }}">{{ macros.command(job) }}</a></td>
-                        <td>{{ macros.state(job) }}</td>
-                        <td>{{ macros.ago(job.createdAt) }}</td>
-                        <td>{{ macros.runtime(job) }}</td>
-                        <td>{{ macros.queue(job) }}</td>
+                        <td style="height:4px; background-color: #ccc;" colspan="{{ colspan }}"></td>
+                    </tr>
+                {% endif %}
+
+                {% for job in jobs %}
+                    {% block jobTableRow %}
+                        <tr>
+                            <td><a href="{{ path("jms_jobs_details", {"id": job.id}) }}">{{ job.id }}</a></td>
+                            <td><a href="{{ path("jms_jobs_details", {"id": job.id}) }}">{{ macros.command(job) }}</a></td>
+                            <td>{{ macros.state(job) }}</td>
+                            <td>{{ macros.ago(job.createdAt) }}</td>
+                            <td>{{ macros.runtime(job) }}</td>
+                            <td>{{ macros.queue(job) }}</td>
+                        </tr>
+                    {% endblock %}
+                {% else %}
+                    <tr>
+                        <td colspan="{{ colspan }}">There are no jobs.</td>
                     </tr>
                 {% endfor %}
-                <tr>
-                    <td style="height:4px; background-color: #ccc;" colspan="6"></td>
-                </tr>
-            {% endif %}
-
-            {% for job in jobs %}
-                <tr>
-                    <td><a href="{{ path("jms_jobs_details", {"id": job.id}) }}">{{ job.id }}</a></td>
-                    <td><a href="{{ path("jms_jobs_details", {"id": job.id}) }}">{{ macros.command(job) }}</a></td>
-                    <td>{{ macros.state(job) }}</td>
-                    <td>{{ macros.ago(job.createdAt) }}</td>
-                    <td>{{ macros.runtime(job) }}</td>
-                    <td>{{ macros.queue(job) }}</td>
-                </tr>
-            {% else %}
-                <tr>
-                    <td colspan="6">There are no jobs.</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    {% endblock %}
 
     {% if jobFilter.page > 1 or hasMore %}
         <ul class="pager">
